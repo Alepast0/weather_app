@@ -25,7 +25,7 @@ class CurrentWeatherModel {
   CurrentWeatherModel.fromJson(Map<String, dynamic> json) {
     cityName = json['name'];
     temp = json['main']['temp'];
-    wind = json['wind']['speed'];
+    wind = json['wind']['speed'].runtimeType == double ? json['wind']['speed'] : (json['wind']['speed'] as int).toDouble();
     humidity = json['main']['humidity'];
     temp_min = json['main']['temp_min'];
     temp_max = json['main']['temp_max'];

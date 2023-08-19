@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:weather/core/extension.dart';
 import 'package:weather/feature/domain/entity/weather/weather_entity.dart';
 
 class WeatherItem extends StatelessWidget {
@@ -11,27 +10,36 @@ class WeatherItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scaleWidth = MediaQuery.of(context).size.width / 375;
+    final scaleHeight = MediaQuery.of(context).size.height / 820;
+
     final itemTime =
         DateFormat.H().format(DateTime.fromMillisecondsSinceEpoch(itemEntity.dt! * 1000));
     return Container(
-      padding: EdgeInsets.all(1.8.hp),
+      padding: EdgeInsets.symmetric(horizontal: 16 * scaleWidth, vertical: 16 * scaleHeight),
       decoration: index == 0
           ? BoxDecoration(
               color: Colors.white.withOpacity(0.4),
-              borderRadius: BorderRadius.circular(1.35.hp),
-              border: Border.all(color: Colors.white, width: 2.0),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white, width: 2.0 * scaleWidth),
             )
           : null,
-      height: 15.96.hp,
-      width: 20.19.wp,
+      height: 142 * scaleHeight,
+      width: 74 * scaleWidth,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            '$itemTime:00',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w400, fontSize: 15),
+          SizedBox(
+            height: 22 * scaleHeight,
+            child: FittedBox(
+              fit: BoxFit.fitHeight,
+              child: Text(
+                '$itemTime:00',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w400, fontSize: 15),
+              ),
+            ),
           ),
-          getIconByWeather(itemEntity.main, itemTime),
+          SizedBox(height: 32, width: 32, child: FittedBox(fit: BoxFit.fitHeight, child: getIconByWeather(itemEntity.main, itemTime))),
           Text(
             "${itemEntity.temp?.toInt()}°",
             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w400, fontSize: 15),
@@ -45,7 +53,7 @@ class WeatherItem extends StatelessWidget {
     final int hour = int.parse(dateTime);
     print(weather);
 
-    if (weather == 'Clouds' && (hour >= 19 || hour < 6)) {
+    if ((hour >= 19 || hour < 6)) {
       return Image.asset('assets/images/CloudMoon.png');
     } else {
       switch (weather) {

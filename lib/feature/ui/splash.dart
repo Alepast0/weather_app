@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:weather/core/extension.dart';
 import 'package:weather/feature/presrntation/auth/auth_page.dart';
 
 class Splash extends StatefulWidget {
@@ -14,18 +14,29 @@ class Splash extends StatefulWidget {
 class _SplashState extends State<Splash> {
   late final latitude;
   late final longitude;
+  late final country;
 
   @override
   void initState() {
     super.initState();
-    getLocation().then((value) => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> AuthScreen(lat: latitude, lon: longitude,))));
+    getLocation().then((value) => Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => AuthScreen(
+                  lat: latitude,
+                  lon: longitude,
+                  country: country,
+                ))));
   }
 
   @override
   Widget build(BuildContext context) {
+    final scaleWidth = MediaQuery.of(context).size.width / 375;
+    final scaleHeight = MediaQuery.of(context).size.height / 820;
+
     return Scaffold(
       body: Container(
-        padding: EdgeInsets.only(top: 39.33.hp, left: 11.0.hp),
+        padding: EdgeInsets.only(top: 292 * scaleHeight, left: 48 * scaleWidth),
         width: MediaQuery.of(context).size.width,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -36,12 +47,14 @@ class _SplashState extends State<Splash> {
           ),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.fromLTRB(0, 0, 11.5.wp, 32.0.hp),
+              width: 245 * scaleWidth,
+              height: 114 * scaleHeight,
+              margin: EdgeInsets.fromLTRB(0, 0, 20 * scaleWidth, 288 * scaleHeight),
               constraints: BoxConstraints(
-                maxWidth: 58.25.wp,
+                maxWidth: 250 * scaleWidth,
               ),
               child: const Text(
                 'WEATHER SERVICE',
@@ -52,8 +65,9 @@ class _SplashState extends State<Splash> {
                 ),
               ),
             ),
-            Container(
-              margin: EdgeInsets.fromLTRB(0.7.wp, 0, 0, 0),
+            SizedBox(
+              height: 32 * scaleHeight,
+              width: 300 * scaleWidth,
               child: const Text(
                 'dawn is coming soon',
                 textAlign: TextAlign.center,
@@ -81,6 +95,16 @@ class _SplashState extends State<Splash> {
       latitude = position.latitude;
       longitude = position.longitude;
 
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        Placemark placemark = placemarks[0];
+        country = placemark.country ?? 'Unknown Country';
+      }
+
       setState(() {});
     } else {
       if (permissionStatus.isDenied) {
@@ -98,6 +122,16 @@ class _SplashState extends State<Splash> {
 
         latitude = position.latitude;
         longitude = position.longitude;
+
+        List<Placemark> placemarks = await placemarkFromCoordinates(
+          position.latitude,
+          position.longitude,
+        );
+
+        if (placemarks.isNotEmpty) {
+          Placemark placemark = placemarks[0];
+          country = placemark.country ?? 'Unknown Country';
+        }
 
         setState(() {});
       } else {

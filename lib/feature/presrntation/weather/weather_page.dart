@@ -1,7 +1,8 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:weather/core/extension.dart';
 import 'package:weather/feature/ui/weather_item.dart';
 
 import 'weather_cubit.dart';
@@ -9,8 +10,9 @@ import 'weather_cubit.dart';
 class WeatherPage extends StatefulWidget {
   final dynamic lat;
   final dynamic lon;
+  final String country;
 
-  const WeatherPage({Key? key, required this.lon, required this.lat}) : super(key: key);
+  const WeatherPage({Key? key, required this.lon, required this.lat, required this.country}) : super(key: key);
 
   @override
   State<WeatherPage> createState() => _WeatherPageState();
@@ -25,6 +27,9 @@ class _WeatherPageState extends State<WeatherPage> {
 
   @override
   Widget build(BuildContext context) {
+    final scaleWidth = MediaQuery.of(context).size.width / 375;
+    final scaleHeight = MediaQuery.of(context).size.height / 820;
+
     return Scaffold(
       body: BlocBuilder<WeatherCubit, WeatherState>(builder: (context, state) {
         if (state is Loading) {
@@ -34,12 +39,14 @@ class _WeatherPageState extends State<WeatherPage> {
                 gradient: LinearGradient(
                   begin: Alignment(-1, -1),
                   end: Alignment(1, 1),
-                  colors: <Color>[Color(0xff0700ff), Color(0xff000000)],
+                  colors: <Color>[Color(0x700700ff), Color(0xff000000)],
                   stops: <double>[0, 1],
                 ),
               ),
               child: const Center(
-                child: CircularProgressIndicator(),
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                ),
               ));
         }
         if (state is Success) {
@@ -50,84 +57,115 @@ class _WeatherPageState extends State<WeatherPage> {
               gradient: LinearGradient(
                 begin: Alignment(-1, -1),
                 end: Alignment(1, 1),
-                colors: <Color>[Color(0xff0700ff), Color(0xff000000)],
+                colors: <Color>[Color(0x700700ff), Color(0xff000000)],
                 stops: <double>[0, 1],
               ),
             ),
             child: Column(
               children: [
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 5.83.wp),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 24 * scaleWidth, vertical: 24 * scaleHeight),
                   margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-                  height: 8.09.hp,
+                  height: 72 * scaleHeight,
                   width: MediaQuery.of(context).size.width,
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        color: Colors.white,
-                        size: 5.83.wp,
+                      SizedBox(
+                        height: 24 * scaleHeight,
+                        child: const FittedBox(
+                          fit: BoxFit.fitHeight,
+                          child: Icon(Icons.location_on_outlined, color: Colors.white),
+                        ),
                       ),
                       SizedBox(
-                        width: 4.86.wp,
+                        width: 8 * scaleWidth,
                       ),
-                      Text(
-                        "${state.currentWeatherEntity?.cityName}, ${state.currentWeatherEntity?.country}",
-                        style: const TextStyle(
-                            color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
-                      )
+                      Expanded(
+                        child: Text(
+                          "${state.currentWeatherEntity?.cityName}, ${widget.country}",
+                          style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                              color: Colors.white, fontWeight: FontWeight.w500, fontSize: 15),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
-                  ),
+                  )
                 ),
                 Column(
                   children: [
-                    Container(
-                      width: 43.75.wp,
-                      height: 20.22.hp,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.transparent,
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color.fromRGBO(189, 135, 255, 0.5),
-                            blurRadius: 5.62.hp,
+                    SizedBox(
+                      height: 180 * scaleHeight,
+                      width: 180 * scaleWidth,
+                      child: Stack(
+                        children: [
+                          ImageFiltered(
+                            imageFilter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+                            child: Container(
+                              width: 150 * scaleWidth,
+                              height: 150 * scaleHeight,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.transparent,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(0xffbc86ff),
+                                    blurRadius: 24,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
+                          getImageByWeather(state.currentWeatherEntity?.weather)
                         ],
                       ),
-                      child: getImageByWeather(state.currentWeatherEntity?.weather),
                     ),
                     SizedBox(
-                      height: 1.0.hp,
+                      height: 8 * scaleHeight,
                     ),
                     SizedBox(
                       width: MediaQuery.of(context).size.width,
-                      height: 8.09.hp,
+                      height: 72 * scaleHeight,
                       child: Center(
-                        child: Text(
-                          "${state.currentWeatherEntity?.temp?.toInt()}°",
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w500, fontSize: 64, color: Colors.white),
+                        child: FittedBox(
+                          fit: BoxFit.fitHeight,
+                          child: Text(
+                            "${state.currentWeatherEntity?.temp?.toInt()}°",
+                            style: Theme.of(context).textTheme.headline1?.copyWith(
+                                color: Colors.white, fontWeight: FontWeight.w500, fontSize: 64),
+                          ),
                         ),
                       ),
                     ),
                     SizedBox(
-                      height: 1.0.hp,
-                    ),
-                    SizedBox(
                       width: MediaQuery.of(context).size.width,
-                      height: 6.29.hp,
+                      height: 56 * scaleHeight,
                       child: Column(
                         children: [
-                          Text(
-                            '${state.currentWeatherEntity?.main?.replaceRange(0, 1, state.currentWeatherEntity?.main?[0].toUpperCase() ?? '')}',
-                            style: const TextStyle(fontSize: 17, color: Colors.white),
+                          SizedBox(
+                            height: 24 * scaleHeight,
+                            child: FittedBox(
+                              fit: BoxFit.fitHeight,
+                              child: Text(
+                                '${state.currentWeatherEntity?.main?.replaceRange(0, 1, state.currentWeatherEntity?.main?[0].toUpperCase() ?? '')}',
+                                style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                                    color: Colors.white, fontWeight: FontWeight.w400, fontSize: 17),
+                              ),
+                            ),
                           ),
                           SizedBox(
-                            height: 0.9.hp,
+                            height: 8 * scaleHeight,
                           ),
-                          Text(
-                            'Макс.: ${state.currentWeatherEntity?.temp_max?.toInt()}° Мин.: ${state.currentWeatherEntity?.temp_min?.toInt()}°',
-                            style: const TextStyle(fontSize: 17, color: Colors.white),
+                          SizedBox(
+                            height: 24 * scaleHeight,
+                            child: FittedBox(
+                              fit: BoxFit.fitHeight,
+                              child: Text(
+                                'Макс.: ${state.currentWeatherEntity?.temp_max?.toInt()}° Мин.: ${state.currentWeatherEntity?.temp_min?.toInt()}°',
+                                style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                                    color: Colors.white, fontWeight: FontWeight.w400, fontSize: 17),
+                              ),
+                            ),
                           )
                         ],
                       ),
@@ -135,42 +173,63 @@ class _WeatherPageState extends State<WeatherPage> {
                   ],
                 ),
                 Container(
-                  height: 35.0.hp,
-                  padding: EdgeInsets.all(5.83.wp),
+                  height: 278 * scaleHeight,
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 24 * scaleWidth, vertical: 24 * scaleHeight),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(3.89.wp),
+                      borderRadius: BorderRadius.circular(16),
                       color: const Color.fromRGBO(255, 255, 255, 0.2),
                     ),
                     child: Column(
                       children: [
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 4.86.wp),
-                          height: 6.9.hp,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 16 * scaleWidth, vertical: 16 * scaleHeight),
+                          height: 56 * scaleHeight,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              const Text(
-                                'Сегодня',
-                                style: TextStyle(color: Colors.white, fontSize: 17),
+                              SizedBox(
+                                height: 24 * scaleHeight,
+                                child: FittedBox(
+                                  fit: BoxFit.fitHeight,
+                                  child: Text(
+                                    'Сегодня',
+                                    style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 17),
+                                  ),
+                                ),
                               ),
-                              Text(
-                                DateFormat('d MMMM', 'ru_RU').format(DateTime.now()),
-                                style: const TextStyle(fontSize: 15, color: Colors.white),
+                              SizedBox(
+                                height: 22 * scaleHeight,
+                                child: FittedBox(
+                                  fit: BoxFit.fitHeight,
+                                  child: Text(
+                                    DateFormat('d MMMM', 'ru_RU').format(DateTime.now()),
+                                    style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 17),
+                                  ),
+                                ),
                               )
                             ],
                           ),
                         ),
                         Container(
                           width: MediaQuery.of(context).size.width,
-                          height: 0.11.hp,
+                          height: 1,
                           color: const Color.fromRGBO(255, 255, 255, 1),
                         ),
                         Expanded(
                           child: ListView.builder(
                               scrollDirection: Axis.horizontal,
-                              padding: EdgeInsets.all(1.8.hp),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 16 * scaleWidth, vertical: 16 * scaleHeight),
                               itemCount: 10,
                               itemBuilder: (context, item) {
                                 return WeatherItem(
@@ -182,69 +241,110 @@ class _WeatherPageState extends State<WeatherPage> {
                   ),
                 ),
                 Container(
-                  height: 12.0.hp,
-                  padding: EdgeInsets.symmetric(horizontal: 5.83.wp),
+                  height: 120 * scaleHeight,
+                  padding: EdgeInsets.only(
+                      right: 24 * scaleWidth, left: 24 * scaleWidth, bottom: 24 * scaleHeight),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(1.8.hp),
+                      borderRadius: BorderRadius.circular(20),
                       color: const Color.fromRGBO(255, 255, 255, 0.2),
                     ),
                     child: Padding(
-                      padding: EdgeInsets.all(4.86.wp),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 16 * scaleWidth, vertical: 16 * scaleHeight),
                       child: Column(
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  SizedBox(
-                                      height: 2.71.hp,
-                                      width: 5.83.wp,
-                                      child: Image.asset("assets/icons/wind.png")),
-                                  SizedBox(
-                                    width: 2.43.wp,
+                          SizedBox(
+                            height: 24 * scaleHeight,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    SizedBox(
+                                        height: 24 * scaleHeight,
+                                        width: 24 * scaleWidth,
+                                        child: Image.asset("assets/icons/wind.png")),
+                                    SizedBox(
+                                      width: 8 * scaleWidth,
+                                    ),
+                                    SizedBox(
+                                      height: 22 * scaleHeight,
+                                      child: FittedBox(
+                                        fit: BoxFit.fitHeight,
+                                        child: Text(
+                                          "${state.currentWeatherEntity?.wind?.toInt()} м/с",
+                                          style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                                              color: const Color.fromRGBO(255, 255, 255, 0.2),
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 15),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 22 * scaleHeight,
+                                  // width: 180 * scaleWidth,
+                                  child: FittedBox(
+                                    fit: BoxFit.fitHeight,
+                                    child: Text('Ветер $windDirection',
+                                        style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 15)),
                                   ),
-                                  Text(
-                                    "${state.currentWeatherEntity?.wind} м/с",
-                                    style: const TextStyle(color: Colors.grey, fontSize: 15),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(
-                                width: 40.0.wp,
-                                child: Text(windDirection,
-                                    style: const TextStyle(color: Colors.white, fontSize: 15)),
-                              )
-                            ],
+                                )
+                              ],
+                            ),
                           ),
                           SizedBox(
-                            height: 1.5.hp,
+                            height: 16 * scaleHeight,
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  SizedBox(
-                                      height: 2.71.hp,
-                                      width: 5.83.wp,
-                                      child: Image.asset("assets/icons/humidity.png")),
-                                  SizedBox(
-                                    width: 2.43.wp,
+                          SizedBox(
+                            height: 24 * scaleHeight,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    SizedBox(
+                                        height: 24 * scaleHeight,
+                                        width: 24 * scaleWidth,
+                                        child: Image.asset("assets/icons/humidity.png")),
+                                    SizedBox(
+                                      width: 10 * scaleWidth,
+                                    ),
+                                    SizedBox(
+                                      height: 22 * scaleHeight,
+                                      child: FittedBox(
+                                        fit: BoxFit.fitHeight,
+                                        child: Text(
+                                          "${state.currentWeatherEntity?.humidity}%",
+                                          style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                                              color: const Color.fromRGBO(255, 255, 255, 0.2),
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 15),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  // width: 180 * scaleWidth,
+                                  height: 22 * scaleHeight,
+                                  child: FittedBox(
+                                    fit: BoxFit.fitHeight,
+                                    child: Text(
+                                        _getHumidityText(state.currentWeatherEntity?.humidity),
+                                        style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 15)),
                                   ),
-                                  Text(
-                                    "${state.currentWeatherEntity?.humidity}%",
-                                    style: const TextStyle(color: Colors.grey, fontSize: 15),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(
-                                width: 40.0.wp,
-                                child: Text(_getHumidityText(state.currentWeatherEntity?.humidity),
-                                    style: const TextStyle(color: Colors.white, fontSize: 15)),
-                              )
-                            ],
+                                )
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -263,13 +363,13 @@ class _WeatherPageState extends State<WeatherPage> {
   String getWindDirection(int? degrees) {
     if (degrees != null) {
       if (degrees >= 0 && degrees < 90) {
-        return 'Северо-восточный';
+        return 'северо-восточный';
       } else if (degrees >= 90 && degrees < 180) {
-        return 'Юго-восточный';
+        return 'юго-восточный';
       } else if (degrees >= 180 && degrees < 270) {
-        return 'Юго-западный';
+        return 'юго-западный';
       } else {
-        return 'Северо-западный';
+        return 'северо-западный';
       }
     } else {
       return '';
